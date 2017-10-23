@@ -388,57 +388,69 @@ function migrations_array_find {
 }
 
 function check {
-    if ! [ -x `command -v diesel` ]; then
+    echo_log "INFO" "begin check enviroment"
+    if [[ `command -v diesel` == '' ]]; then
         echo_log "INFO" "not found command diesel, run cargo install diesel_cli now"
         cargo install diesel_cli
-    fi  
+    fi
 }
 
-function inital {
+function initial {
     echo_log "INFO" "empty all migration history"
     rm -r $MIGRATIONS_DIR
 
+    echo_log "INFO" "diesel setup"
     diesel setup
+    if [ `echo $?` != 0 ]; then
+        echo_log "ERROR" "diesel setup failed, maybe sql connect issue, solve it and retry again"
+        exit
+    fi
+
     if ! [ -d $MIGRATIONS_DIR ]; then
         echo_log "ERROR" "not foud folder $MIGRATIONS_DIR, maybe diesel setup failed, retry again"
         exit
     fi
 }
 
+function migrate {
+    for table in ${MIGRATIONS[@]}
+    do
+        diesel migration generate "create_$table"
+
+        ## wrapper the sql into migration file
+        pushd $MIGRATIONS_DIR
+            for dir in *
+            do
+                # jump into sub dir
+                pattern=`echo $dir | cut -d'_' -f 3-10`
+                echo $pattern
+                if [ $pattern == "$table" ]; then
+                    index=`migrations_array_find $table`
+                    pushd $dir
+                        for file in *
+                        do
+                            if [ $file == "up.sql" ]; then 
+                                echo "\n"${MIGRATIONS_UP_SQL[$index]} >> $file
+                            elif [ $file == "down.sql" ]; then
+                                echo "\n"${MIGRATIONS_DOWN_SQL[$index]} >> $file
+                            else 
+                                echo_log "ERROR" "not found up.sql or down.sql"
+                            fi
+                        done
+                    popd
+                fi
+            done
+        popd
+    done
+}
+
 ## check enviroment
 check
 
 ## initial migration
-inital
+initial
 
 ## start migration
-for table in ${MIGRATIONS[@]}
-do
-    diesel migration generate "create_$table"
+migrate
 
-    ## wrapper the sql into migration file
-    pushd $MIGRATIONS_DIR
-        for dir in *
-        do
-            # jump into sub dir
-            pattern=`echo $dir | cut -d'_' -f 3-10`
-            echo $pattern
-            if [ $pattern == "$table" ]; then
-                index=`migrations_array_find $table`
-                pushd $dir
-                    for file in *
-                    do
-                        if [ $file == "up.sql" ]; then 
-                            echo "\n"${MIGRATIONS_UP_SQL[$index]} >> $file
-                        elif [ $file == "down.sql" ]; then
-                            echo "\n"${MIGRATIONS_DOWN_SQL[$index]} >> $file
-                        else 
-                            echo_log "ERROR" "not found up.sql or down.sql"
-                        fi
-                    done
-                popd
-            fi
-        done
-    popd
-done
 
