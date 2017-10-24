@@ -403,9 +403,6 @@ function check {
 }
 
 function initial {
-    echo_log "INFO" "empty all migration history"
-    rm -r $MIGRATIONS_DIR
-
     echo_log "INFO" "diesel setup"
     diesel setup
     if [ `echo $?` != 0 ]; then
