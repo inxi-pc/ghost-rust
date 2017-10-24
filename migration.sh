@@ -394,16 +394,13 @@ function migrations_array_find() {
 
 ################## Logic ###########################
 function check {
-    echo_log "INFO" "check enviroment"
-    if [[ `command -v diesel` == '' ]]; then
-        echo_log "INFO" "not found command diesel, run cargo install diesel_cli now"
+    if [ -z `command -v diesel` ]; then
+        echo_log "INFO" "not found command diesel, auto-run cargo install diesel_cli now"
         cargo install diesel_cli
     fi
-    echo_log "INFO" "check success"
 }
 
 function initial {
-    echo_log "INFO" "diesel setup"
     diesel setup
     if [ `echo $?` != 0 ]; then
         echo_log "ERROR" "diesel setup failed, maybe sql connect issue, solve it and retry again"
@@ -417,6 +414,11 @@ function initial {
 }
 
 function create_tables {
+    if ! [ -z `ls MIGRATIONS | grep 'create_tables'` ]; then
+        echo_log "INFO" "migration of create_tables has been exist"
+        exit
+    fi
+
     diesel migration generate "create_tables"
     for table in ${MIGRATIONS[@]}
     do
@@ -425,7 +427,8 @@ function create_tables {
             for dir in *
             do
                 # jump into sub dir
-                if [ $dir == *"create_tables"* ]; then
+                pattern=`echo $dir | cut -d'_' -f 2-3`
+                if [ $pattern == "create_tables" ]; then
                     index=`migrations_array_find $table`
                     pushd $dir
                         for file in *
@@ -443,6 +446,7 @@ function create_tables {
             done
         popd
     done
+    diesel migration run
 }
 
 case $1 in
