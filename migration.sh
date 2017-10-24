@@ -460,11 +460,11 @@ case $1 in
     ## create tables
     create_tables)
         check
-        inital
+        initial
         create_tables
         ;;
     *)
-        echo "$0 [check, inital, create_tables]"
+        echo "$0 [check, initial, create_tables]"
         ;;
 esac
 
