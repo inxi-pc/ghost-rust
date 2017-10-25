@@ -446,7 +446,6 @@ function create_tables {
             done
         popd
     done
-    diesel migration run
 }
 
 case $1 in
