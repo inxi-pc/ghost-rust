@@ -31,7 +31,7 @@ MIGRATIONS=(
 MIGRATIONS_UP_SQL=(
     ## users
     "CREATE TABLE ghost.users (
-    id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
     name varchar(191) NOT NULL,
     slug varchar(191) NOT NULL,
     ghost_auth_access_token varchar(32) DEFAULT NULL,
@@ -63,7 +63,7 @@ MIGRATIONS_UP_SQL=(
     );"
     ## apps
     "CREATE TABLE ghost.apps (
-    id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
     name varchar(191) NOT NULL,
     slug varchar(191) NOT NULL,
     version varchar(50) NOT NULL,
@@ -78,11 +78,11 @@ MIGRATIONS_UP_SQL=(
     );"
     ## app_fields
     "CREATE TABLE ghost.app_fields (
-    id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
     key varchar(50) NOT NULL,
     value text,
     type varchar(50) NOT NULL DEFAULT 'html',
-    app_id varchar(24) NOT NULL,
+    app_id int NOT NULL,
     relatable_id varchar(24) NOT NULL,
     relatable_type varchar(50) NOT NULL DEFAULT 'posts',
     active smallint NOT NULL DEFAULT '1',
@@ -95,10 +95,10 @@ MIGRATIONS_UP_SQL=(
     );"
     ## app_settings
     "CREATE TABLE ghost.app_settings (
-    id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
     key varchar(50) NOT NULL,
     value text,
-    app_id varchar(24) NOT NULL,
+    app_id int NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     created_by varchar(24) NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -117,7 +117,7 @@ MIGRATIONS_UP_SQL=(
     );"
     ## clients
     "CREATE TABLE ghost.clients (
-    id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
     uuid varchar(36) NOT NULL,
     name varchar(50) NOT NULL,
     slug varchar(50) NOT NULL,
@@ -139,18 +139,18 @@ MIGRATIONS_UP_SQL=(
     );"
     ## client_trusted_domains
     "CREATE TABLE ghost.client_trusted_domains (
-    id varchar(24) NOT NULL,
-    client_id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
+    client_id int NOT NULL,
     trusted_domain varchar(2000) DEFAULT NULL,
     PRIMARY KEY (id),
     CONSTRAINT client_trusted_domains_client_id_foreign FOREIGN KEY (client_id) REFERENCES ghost.clients (id)
     );"
     ## accesstokens
     "CREATE TABLE ghost.accesstokens (
-    id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
     token varchar(191) NOT NULL,
-    user_id varchar(24) NOT NULL,
-    client_id varchar(24) NOT NULL,
+    user_id int NOT NULL,
+    client_id int NOT NULL,
     issued_by varchar(24) DEFAULT NULL,
     expires bigint NOT NULL,
     PRIMARY KEY (id),
@@ -160,7 +160,7 @@ MIGRATIONS_UP_SQL=(
     );"
     ## invites
     "CREATE TABLE invites (
-    id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
     role_id varchar(24) NOT NULL,
     status varchar(50) NOT NULL DEFAULT 'pending',
     token varchar(191) NOT NULL,
@@ -184,7 +184,7 @@ MIGRATIONS_UP_SQL=(
     );"
     ## permissions
     "CREATE TABLE ghost.permissions (
-    id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
     name varchar(50) NOT NULL,
     object_type varchar(50) NOT NULL,
     action_type varchar(50) NOT NULL,
@@ -198,28 +198,28 @@ MIGRATIONS_UP_SQL=(
     );"
     ## permissions_apps
     "CREATE TABLE ghost.permissions_apps (
-    id varchar(24) NOT NULL,
-    app_id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
+    app_id int NOT NULL,
     permission_id varchar(24) NOT NULL,
     PRIMARY KEY (id)
     );"
     ## permissions_roles
     "CREATE TABLE ghost.permissions_roles (
-    id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
     role_id varchar(24) NOT NULL,
     permission_id varchar(24) NOT NULL,
     PRIMARY KEY (id)
     );"
     ## permissions_users
     "CREATE TABLE ghost.permissions_users (
-    id varchar(24) NOT NULL,
-    user_id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
+    user_id int NOT NULL,
     permission_id varchar(24) NOT NULL,
     PRIMARY KEY (id)
     );"
     ## tags
     "CREATE TABLE ghost.tags (
-    id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
     name varchar(191) NOT NULL,
     slug varchar(191) NOT NULL,
     description text,
@@ -237,7 +237,7 @@ MIGRATIONS_UP_SQL=(
     );"
     ## posts
     "CREATE TABLE ghost.posts (
-    id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
     uuid varchar(36) NOT NULL,
     title varchar(2000) NOT NULL,
     slug varchar(191) NOT NULL,
@@ -275,9 +275,9 @@ MIGRATIONS_UP_SQL=(
     );"
     ## posts_tags
     "CREATE TABLE ghost.posts_tags (
-    id varchar(24) NOT NULL,
-    post_id varchar(24) NOT NULL,
-    tag_id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
+    post_id int NOT NULL,
+    tag_id int NOT NULL,
     sort_order int NOT NULL DEFAULT '0',
     PRIMARY KEY (id),
     CONSTRAINT posts_tags_post_id_foreign FOREIGN KEY (post_id) REFERENCES ghost.posts (id),
@@ -285,10 +285,10 @@ MIGRATIONS_UP_SQL=(
     );"
     ## refreshtokens
     "CREATE TABLE ghost.refreshtokens (
-    id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
     token varchar(191) NOT NULL,
-    user_id varchar(24) NOT NULL,
-    client_id varchar(24) NOT NULL,
+    user_id int NOT NULL,
+    client_id int NOT NULL,
     expires bigint NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (token),
@@ -297,7 +297,7 @@ MIGRATIONS_UP_SQL=(
     );"
     ## roles
     "CREATE TABLE ghost.roles (
-    id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
     name varchar(50) NOT NULL,
     description varchar(2000) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -309,14 +309,14 @@ MIGRATIONS_UP_SQL=(
     );"
     ## roles_users
     "CREATE TABLE ghost.roles_users (
-    id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
     role_id varchar(24) NOT NULL,
-    user_id varchar(24) NOT NULL,
+    user_id int NOT NULL,
     PRIMARY KEY (id)
     );"
     ## settings
     "CREATE TABLE ghost.settings (
-    id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
     key varchar(50) NOT NULL,
     value text,
     type varchar(50) NOT NULL DEFAULT 'core',
@@ -329,7 +329,7 @@ MIGRATIONS_UP_SQL=(
     );"
     ## subscribers
     "CREATE TABLE ghost.subscribers (
-    id varchar(24) NOT NULL,
+    id SERIAL NOT NULL,
     name varchar(191) DEFAULT NULL,
     email varchar(191) NOT NULL,
     status varchar(50) NOT NULL DEFAULT 'pending',
@@ -414,12 +414,10 @@ function initial {
 }
 
 function create_tables {
-    if ! [ -z `ls MIGRATIONS | grep 'create_tables'` ]; then
-        echo_log "INFO" "migration of create_tables has been exist"
-        exit
-    fi
+    tag=`date +%s`
+    migration_name="create_tables_$tag"
 
-    diesel migration generate "create_tables"
+    diesel migration generate $migration_name
     for table in ${MIGRATIONS[@]}
     do
         ## wrapper the sql into migration file
@@ -427,8 +425,8 @@ function create_tables {
             for dir in *
             do
                 # jump into sub dir
-                pattern=`echo $dir | cut -d'_' -f 2-3`
-                if [ $pattern == "create_tables" ]; then
+                pattern=`echo $dir | cut -d'_' -f 2-100`
+                if [ $pattern == $migration_name ]; then
                     index=`migrations_array_find $table`
                     pushd $dir
                         for file in *

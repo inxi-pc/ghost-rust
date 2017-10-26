@@ -3,3 +3,4 @@
 Cargo.lock
 migrations
 .DS_Store
+.vscode/
