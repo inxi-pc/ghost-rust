@@ -2,14 +2,14 @@ use super::schema::settings;
 use chrono::NaiveDateTime;
 
 #[derive(Queryable)]
-pub struct Settings {
-    pub id: i32,
-    pub key: String,
-    pub type: String,
-    pub created_at: NaiveDateTime,
-    pub created_by: String,
-    pub updated_at: NaiveDateTime,
-    pub updated_by: String
+pub struct SettingsQueryDTO {
+    pub id: Option<i32>,
+    pub key: Option<String>,
+    pub type: Option<String>,
+    pub created_at: Option<NaiveDateTime>,
+    pub created_by: Option<String>,
+    pub updated_at: Option<NaiveDateTime>,
+    pub updated_by: Option<String>
 }
 
 #[derive(Insertable)]
@@ -27,14 +27,19 @@ pub struct NewSettings {
 pub struct Settings {
     pub id: i32,
     pub key: String,
-    pub value: String,
+    pub value: Option<String>,
     pub type: String,
     pub created_at: NaiveDateTime,
     pub created_by: String,
-    pub updated_at: NaiveDateTime,
-    pub updated_byL String
+    pub updated_at: Option<NaiveDateTime>,
+    pub updated_by: Option<String>
 }
 
+impl Settings {
+    pub fn findSettings(&self) {
+
+    }
+}
 
 
 
