@@ -1,0 +1,1 @@
+infer_schema!("dotenv:PG_DATABASE_URL");
