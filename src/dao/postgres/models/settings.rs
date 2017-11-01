@@ -1,13 +1,28 @@
-use super::schema::settings;
-use diesel::prelude::*; 
+use dao::postgres::schema::ghost::settings;
 use chrono::offset::Utc;
 use chrono::NaiveDateTime;
 
+// enum is diffcult to use
+// #[derive(Debug)]
+// pub enum SettingsType {
+//     Core,
+//     Blog,
+//     Theme,
+//     App,
+//     Private
+// }
+
+// impl Default for SettingsType {
+//     fn default() -> Self {
+//         SettingsType::Core
+//     }
+// }
+
 #[derive(Queryable)]
-pub struct SettingsQueryDTO<'a> {
+pub struct SettingsQueryDTO {
     pub id: Option<i32>,
     pub key: Option<String>,
-    pub type_: Option<SettingsType<'a>>,
+    pub type_: Option<String>,
     pub created_at: Option<NaiveDateTime>,
     pub created_by: Option<String>,
     pub updated_at: Option<NaiveDateTime>,
@@ -16,34 +31,19 @@ pub struct SettingsQueryDTO<'a> {
 
 #[derive(Insertable)]
 #[table_name="settings"]
-pub struct NewSettings<'a> {
+pub struct NewSettings {
     pub key: String,
-    pub type_: Option<SettingsType<'a>>,
+    pub type_: String,
     pub value: Option<String>,
     pub created_at: NaiveDateTime,
     pub created_by: String
 }
 
-#[derive(Debug)]
-pub enum SettingsType<'a> {
-    Core(&'a str),
-    Blog(&'a str),
-    Theme(&'a str),
-    App(&'a str),
-    Private(&'a str)
-}
-
-impl<'a> Default for SettingsType<'a> {
-    fn default() -> Self {
-        SettingsType::Core("core")
-    }
-}
-
-impl<'a> Default for NewSettings<'a> {
+impl Default for NewSettings {
     fn default() -> Self {
         NewSettings {
             key: "".to_string(),
-            type_: Some(SettingsType::default()),
+            type_: "core".to_string(),
             value: None,
             created_at: Utc::now().naive_utc(),
             created_by: "system".to_string() // get from session

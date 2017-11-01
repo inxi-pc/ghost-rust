@@ -1,4 +1,4 @@
-// pub mod mysql;
+pub mod mysql;
 pub mod util;
 pub mod postgres;
 

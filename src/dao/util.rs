@@ -1,8 +1,8 @@
-use diesel::prelude::*;
 use dotenv::dotenv;
 use std::env;
 use r2d2::{self, Pool};
 use r2d2_diesel::ConnectionManager;
+use diesel::prelude::*;
 use super::Backend;
 
 pub fn establish_connection<T: Connection>(backend: Backend) -> T {

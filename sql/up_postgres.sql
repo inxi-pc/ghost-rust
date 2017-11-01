@@ -86,7 +86,8 @@ CREATE TABLE ghost.brute (
   firstRequest bigint NOT NULL,
   lastRequest bigint NOT NULL,
   lifetime bigint NOT NULL,
-  count int NOT NULL
+  count int NOT NULL,
+  PRIMARY KEY (key)
 );
 
 -- clients
