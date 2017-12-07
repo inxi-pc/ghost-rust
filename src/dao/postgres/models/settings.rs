@@ -6,9 +6,8 @@ use diesel::prelude::*;
 use dao::postgres::schema::ghost::settings;
 use dao::common::{SettingsType, DaoBackend};
 use dao::util;
-use util as core_util;
+use util as app_util;
 use serde_json::{self, Value};
-use serde_json::map::Map;
 
 #[derive(Queryable, Debug, Default)]
 pub struct SettingQueryDTO {
@@ -68,49 +67,48 @@ pub struct Setting {
     pub updated_by: Option<String>,
 }
 
-#[derive(Deserialize, Debug)]
-struct DefaultSettings {
-    pub setting_type: String,
-    pub settings_collection: Vec<DefaultSettingsElement>,
-} 
-
-#[derive(Deserialize, Debug)]
-struct DefaultSettingsElement {
-    pub key: String,
-    pub value_collection: Vec<DefaultSettingsElementValue>,
-}
-
-#[derive(Deserialize, Debug)]
-struct DefaultSettingsElementValue {
-    pub key: String,
-    pub value: String,
-}
-
 impl Setting {
-    pub fn init() -> Map {
+    fn initial_db_data() {
         use dao::postgres::schema::ghost::settings::dsl::*;
+
         // load db settings
-        let connection: PgConnection = util::establish_connection::<PgConnection>(DaoBackend::Postgres);
+        let connection: PgConnection =
+            util::establish_connection::<PgConnection>(DaoBackend::Postgres);
         let settings_collection: Vec<Setting> = settings
             .filter(id.gt(0))
             .load::<Setting>(&connection)
-            .expect("Error loading settings");
+            .expect("Error loading settings from db");
 
-        // load default settings
-        let mut root_dir: PathBuf = core_util::get_root_dir();
-        let mut file_content = String::new();
-        let mut default_settings = Map::new();
+        // load and parse default settings
+        let mut root_dir: PathBuf = app_util::get_root_dir();
         root_dir.push("src/dao/data/default_settings.json");
-        match core_util::load_file_content::<PathBuf>(&root_dir) {
-            Ok(content) => file_content = content,
-            Err(ref err) => println!("{}", err),
-        }
-        match serde_json::from_str::<Map<String, DefaultSettings>>(&file_content) {
-            Ok(content) => default_settings = content,
-            Err(ref err) => println!("{}", err),
-        }
+        let mut file_content = app_util::get_file_content::<PathBuf>(&root_dir).expect(
+            format!(
+                "Error get file content, file is {}",
+                root_dir.display()
+            ).as_str(),
+        );
+        let default_values_json: Value =
+            serde_json::from_str(&file_content).expect("Error de json from file");
+        let default_values: Vec<Vec<NewSetting>> = default_values_json
+            .as_object()
+            .unwrap()
+            .iter()
+            .map(|v| {
+                v.1
+                    .as_object()
+                    .unwrap()
+                    .iter()
+                    .map(|inner_v| {
+                        let mut new_setting: NewSetting = NewSetting::default();
+                        new_setting.key = inner_v.0.clone();
+                        new_setting.type_ = SettingsType::new(v.0);
 
-        default_settings
+                        new_setting
+                    })
+                    .collect()
+            })
+            .collect();
     }
 }
 
@@ -121,6 +119,5 @@ fn factory_test() {
 
 #[test]
 fn setting_init() {
-    let value: Value = Setting::init();
-    println!("{:?}", value.get(SettingsType::Core.to_string()));
+    Setting::initial_db_data();
 }

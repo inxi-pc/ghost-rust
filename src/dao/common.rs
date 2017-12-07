@@ -29,6 +29,19 @@ impl Default for SettingsType {
     }
 }
 
+impl SettingsType {
+    pub fn new(st: &str) -> Self {
+        match st {
+            "core" => SettingsType::Core,
+            "blog" => SettingsType::Blog,
+            "theme" => SettingsType::Theme,
+            "app" => SettingsType::App,
+            "private" => SettingsType::Private,
+            _ => SettingsType::Core,
+        }
+    }
+}
+
 impl fmt::Display for SettingsType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {

@@ -30,32 +30,16 @@
             "defaultValue": ""
         },
         "default_locale": {
-            "defaultValue": "en",
-            "validations": {
-                "isEmpty": false
-            }
+            "defaultValue": "en"
         },
         "active_timezone": {
-            "defaultValue": "Etc/UTC",
-            "validations": {
-                "isTimezone": true,
-                "isEmpty": false
-            }
+            "defaultValue": "Etc/UTC"
         },
         "force_i18n": {
-            "defaultValue": "true",
-            "validations": {
-                "isEmpty": false,
-                "isIn": [["true", "false"]]
-            }
+            "defaultValue": "true"
         },
         "permalinks": {
-            "defaultValue": "/:slug/",
-            "validations": {
-                "matches": "^(\/:?[a-z0-9_-]+){1,5}\/$",
-                "matches": "(:id|:slug|:year|:month|:day|:author|:primary_tag)",
-                "notContains": "/ghost/"
-            }
+            "defaultValue": "/:slug/"
         },
         "amp": {
             "defaultValue" : "true"

@@ -15,3 +15,4 @@ extern crate serde_derive;
 
 pub mod dao;
 pub mod util;
+pub mod error;
