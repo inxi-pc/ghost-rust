@@ -1,10 +1,13 @@
 use std::path::PathBuf;
+use std::collections::HashMap;
 use chrono::offset::Utc;
 use chrono::NaiveDateTime;
+use diesel;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use dao::postgres::schema::ghost::settings;
-use dao::common::{SettingsType, DaoBackend};
+use dao::common;
+use dao::common::{DaoBackend, SettingsType, TableInitial};
 use dao::util;
 use util as app_util;
 use serde_json::{self, Value};
@@ -28,6 +31,8 @@ pub struct NewSetting {
     pub value: Option<String>,
     pub created_at: NaiveDateTime,
     pub created_by: String,
+    pub updated_at: NaiveDateTime,
+    pub updated_by: String,
 }
 
 impl Default for NewSetting {
@@ -38,6 +43,8 @@ impl Default for NewSetting {
             value: None,
             created_at: Utc::now().naive_utc(),
             created_by: "system".to_string(), // get from session
+            updated_at: Utc::now().naive_utc(),
+            updated_by: "system".to_string(),
         }
     }
 }
@@ -67,30 +74,18 @@ pub struct Setting {
     pub updated_by: Option<String>,
 }
 
-impl Setting {
+impl TableInitial for Setting {
     fn initial_db_data() {
         use dao::postgres::schema::ghost::settings::dsl::*;
 
-        // load db settings
-        let connection: PgConnection =
-            util::establish_connection::<PgConnection>(DaoBackend::Postgres);
-        let settings_collection: Vec<Setting> = settings
-            .filter(id.gt(0))
-            .load::<Setting>(&connection)
-            .expect("Error loading settings from db");
-
         // load and parse default settings
-        let mut root_dir: PathBuf = app_util::get_root_dir();
-        root_dir.push("src/dao/data/default_settings.json");
-        let mut file_content = app_util::get_file_content::<PathBuf>(&root_dir).expect(
-            format!(
-                "Error get file content, file is {}",
-                root_dir.display()
-            ).as_str(),
-        );
+        let default_json_file_path: PathBuf =
+            app_util::get_file_path::<&str>(&common::DEFAULT_SETTINGS_FILE_DIR);
+        let file_content = app_util::get_file_content::<PathBuf>(&default_json_file_path)
+            .expect("Error get default settings json file content");
         let default_values_json: Value =
-            serde_json::from_str(&file_content).expect("Error de json from file");
-        let default_values: Vec<Vec<NewSetting>> = default_values_json
+            serde_json::from_str(&file_content).expect("Error deserialize json from file");
+        let default_values_nest: Vec<Vec<NewSetting>> = default_values_json
             .as_object()
             .unwrap()
             .iter()
@@ -103,12 +98,54 @@ impl Setting {
                         let mut new_setting: NewSetting = NewSetting::default();
                         new_setting.key = inner_v.0.clone();
                         new_setting.type_ = SettingsType::new(v.0);
+                        new_setting.value = inner_v
+                            .1
+                            .get("defaultValue")
+                            .cloned()
+                            .map(|v| v.as_str().unwrap_or("").to_string());
 
                         new_setting
                     })
                     .collect()
             })
             .collect();
+        let default_values: Vec<NewSetting> =
+            default_values_nest.into_iter().flat_map(|v| v).collect();
+        let default_values_map: HashMap<String, NewSetting> = default_values
+            .into_iter()
+            .map(|v| (v.key.clone(), v))
+            .collect();
+
+        // load db settings
+        let connection: PgConnection =
+            util::establish_connection::<PgConnection>(DaoBackend::Postgres);
+        let exist_settings: Vec<Setting> = settings
+            .filter(id.gt(0))
+            .load::<Setting>(&connection)
+            .expect("Error loading settings data from db");
+
+        if exist_settings.len() <= 0 {
+            // insert all default settings into db
+            default_values_map.iter().for_each(|(_, v)| {
+                diesel::insert_into(settings)
+                    .values(v)
+                    .execute(&connection)
+                    .expect("Error insert default settings data");
+            })
+        } else {
+            // insert not exist data into db
+            exist_settings
+                .iter()
+                .for_each(|v| match default_values_map.get(&v.key) {
+                    Some(insert) => {
+                        diesel::insert_into(settings)
+                            .values(insert)
+                            .execute(&connection)
+                            .expect("Error insert default settings data");
+                    }
+                    _ => {}
+                })
+        }
     }
 }
 

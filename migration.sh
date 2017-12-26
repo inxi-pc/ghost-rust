@@ -58,7 +58,15 @@ function has_initial() {
     fi
 }
 
-function initial {
+function has_created {
+    if [ -d $MIGRATIONS_DIR/*$1_create_tables* ]; then
+        echo 1
+    else
+        echo 0
+    fi
+}
+
+function create_initial_migration {
     ## pre check
     check_db_name $1 
     check_env
@@ -79,15 +87,7 @@ function initial {
     fi
 }
 
-function has_created {
-    if [ -d $MIGRATIONS_DIR/*$1_create_tables* ]; then
-        echo 1
-    else
-        echo 0
-    fi
-}
-
-function create_tables {
+function create_tables_migration {
     ## pre check
     check_db_name $1
     check_env
@@ -122,10 +122,6 @@ function create_tables {
             fi
         done
     popd
-
-    ## run migration
-    db_url=`get_db_url $db_name`
-    diesel migration --database-url $db_url run 
 }
 
 ## alias `diesel migration revert`
@@ -149,13 +145,13 @@ case $1 in
     check)
         check_env
         ;;
-    ## initial migration
-    initial)  
-        initial $2
+    ## create initial migration
+    create_initial)  
+        create_initial_migration $2
         ;;
-    ## create tables
+    ## create tables migration
     create_tables)
-        create_tables $2
+        create_tables_migration $2
         ;;
     ## revert migration
     revert)
@@ -166,7 +162,7 @@ case $1 in
         run $2
         ;;
     *)
-        echo "$0 [check, initial --db_name, create_tables --db_name, revert --db_name, run --db_name]"
+        echo "$0 [check, create_initial --db_name, create_tables --db_name, revert --db_name, run --db_name]"
         ;;
 esac
 

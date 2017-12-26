@@ -6,6 +6,8 @@ use diesel::expression::helper_types::AsExprOf;
 use std::error::Error;
 use std::fmt;
 
+pub static DEFAULT_SETTINGS_FILE_DIR: &'static str = "src/dao/data/default_settings.json";
+
 // dao Backend type, not be same as diesel defined Backend
 #[derive(Debug)]
 pub enum DaoBackend {
@@ -76,4 +78,9 @@ impl<'a> AsExpression<Text> for &'a SettingsType {
     fn as_expression(self) -> Self::Expression {
         AsExpression::<Text>::as_expression(self.to_string())
     }
+}
+
+pub trait TableInitial {
+
+    fn initial_db_data();
 }
