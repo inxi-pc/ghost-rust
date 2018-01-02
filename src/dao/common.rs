@@ -80,7 +80,7 @@ impl<'a> AsExpression<Text> for &'a SettingsType {
     }
 }
 
-pub trait TableInitial {
+pub trait InitialTable {
 
     fn initial_db_data();
 }

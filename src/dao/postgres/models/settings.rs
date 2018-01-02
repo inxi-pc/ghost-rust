@@ -7,7 +7,7 @@ use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use dao::postgres::schema::ghost::settings;
 use dao::common;
-use dao::common::{DaoBackend, SettingsType, TableInitial};
+use dao::common::{DaoBackend, SettingsType, InitialTable};
 use dao::util;
 use util as app_util;
 use serde_json::{self, Value};
@@ -74,7 +74,7 @@ pub struct Setting {
     pub updated_by: Option<String>,
 }
 
-impl TableInitial for Setting {
+impl InitialTable for Setting {
     fn initial_db_data() {
         use dao::postgres::schema::ghost::settings::dsl::*;
 
@@ -137,13 +137,13 @@ impl TableInitial for Setting {
             exist_settings
                 .iter()
                 .for_each(|v| match default_values_map.get(&v.key) {
-                    Some(insert) => {
+                    Some(_) => {}
+                    None => {
                         diesel::insert_into(settings)
-                            .values(insert)
+                            .values(default_values_map.get(&v.key))
                             .execute(&connection)
                             .expect("Error insert default settings data");
                     }
-                    _ => {}
                 })
         }
     }
